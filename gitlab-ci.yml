@@ -1,0 +1,32 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  SERVICE_NAME: "telepy-bot-alert-statict"
+  DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+
+build-docker-image:
+  stage: build  
+  image: docker
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker build -t $DOCKER_IMAGE .
+    - docker push $DOCKER_IMAGE
+    - docker rmi -f $DOCKER_IMAGE
+
+# Развертывание docker image на VM
+deploy-via-gitrunner-vm:
+  stage: deploy
+  # Через gitlab-runner -> prod_srv_qas_bot
+  tags: [prod_srv_qas_bot]
+  script:
+    - echo $CI_REGISTRY_USER
+    - echo $CI_REGISTRY_PASSWORD
+    - echo $CI_REGISTRY        
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY 
+    - docker pull $DOCKER_IMAGE
+    - docker stop $SERVICE_NAME || true && docker rm $SERVICE_NAME || true
+    - docker run --restart unless-stopped -p 8080:8080 --name $SERVICE_NAME -d $DOCKER_IMAGE
