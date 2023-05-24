@@ -1,0 +1,17 @@
+{#{% extends "admin/change_list.html" %}#}
+{% extends "admin/change_list.html" %}
+{% block object-tools %}
+    {% block content %}
+        <H1>Hello Bot </H1>
+        <form action="start_polling/" method="POST">
+            {% csrf_token %}
+            <input type="submit" value="Запустить опрос Telegram Bots"/>
+        </form>
+        <form action="restart_polling/" method="POST">
+            {% csrf_token %}
+            <input type="submit" value="Перезапустить опрос Telegram Bots"/>
+        </form>
+
+        {{ block.super }}
+    {% endblock %}
+{% endblock %}
